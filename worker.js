@@ -12,10 +12,6 @@
 
 const ORIGIN = 'https://love-vibes.github.io';   // ← твій Pages-домен
 
-// Telegram user_id, яким дозволено надсилати план. Прибереш тестовий свій —
-// просто видали його з масиву.
-const ALLOWED_IDS = ['1422315825', '5101892359'];
-
 const cors = {
   'Access-Control-Allow-Origin': ORIGIN,
   'Access-Control-Allow-Methods': 'POST,OPTIONS',
@@ -34,13 +30,10 @@ export default {
     const text = String(body.text || '').slice(0, 3500);
     if (!text) return new Response('empty', { status: 400, headers: cors });
 
-    // приймаємо план лише від справжньої Telegram-сесії Ангеліни
+    // приймаємо план лише від справжньої Telegram-сесії (будь-якої)
     const v = await verify(body.initData, env.BOT_TOKEN);
     if (!v.ok || !v.user) {
       return new Response('unauthorized', { status: 401, headers: cors });
-    }
-    if (!ALLOWED_IDS.includes(String(v.user.id))) {
-      return new Response('forbidden', { status: 403, headers: cors });
     }
 
     const who = `\n\n👤 ${v.user.first_name || ''} ${v.user.last_name || ''}`.trimEnd()
