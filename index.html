@@ -767,12 +767,10 @@ const ACTIVITIES = [
       opts:['Ресторація Бачевських','Mons Pius','Valentino',
             'Найдорожча ресторація Галичини','Seven Restopub',
             'Добрий Друг','Добрий Друг 4','наше місце','доставка додому'] },
-    { id:'roof',   t:'Кіно на даху', dur:120,
-      opts:['Центр Довженка, Сихів','дах з проєктором','вдома під ковдрою'] },
+    { id:'roof',   t:'Кіно «Містер і Місіс Сміт»', w:'Сеанс о 20:00', dur:120 },
     { id:'planet', t:'Планетарій', w:'зорі і тиша', dur:50 },
     { id:'wine',   t:'Винний бар', dur:75 },
-    { id:'cocktail',t:'Коктейльний бар', dur:75 },
-    { id:'home',   t:'Домашній вечір', dur:120, opts:['серіал','настолки','нічого не робити'] }
+    { id:'cocktail',t:'Коктейльний бар', dur:75 }
   ]}
 ];
 
@@ -836,7 +834,9 @@ ACTIVITIES.forEach(group=>{
   cats.appendChild(sec);
 });
 
-/* Victoria Gardens стоїть у плані з самого початку */
+/* закинути валізу — 1-й слот, Victoria Gardens — 2-й, обидва з самого початку */
+chosen.set('drop', { opt:null, pace:1 });
+order.push('drop');
 chosen.set('mall', { opt:null, pace:1 });
 order.push('mall');
 
