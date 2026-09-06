@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>Ангеліна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Manrope:wght@300;400;500;600&display=swap&subset=cyrillic" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* ═══════════ НАЛАШТУВАННЯ ВИГЛЯДУ ═══════════ */
+:root{
+  --night:#16122B;
+  --night-deep:#0B0818;
+  --dusk:#251E44;
+  --dusk-soft:#2F2757;
+  --gold:#E3B778;
+  --gold-dim:#8A7150;
+  --blush:#E8A0A8;
+  --paper:#F6EDDD;
+  --paper-shade:#E7D9C2;
+  --ink:#3B3227;
+  --mist:rgba(246,237,221,.62);
+
+  --s1:6px; --s2:12px; --s3:20px; --s4:32px; --s5:52px;
+  --serif:"Cormorant Garamond",Georgia,serif;
+  --sans:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{
+  background:var(--night-deep);
+  color:var(--mist);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:2px}
+
+/* ── фон: нічне небо з ледь помітним світлом знизу ── */
+#sky{position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(120% 80% at 50% 108%, rgba(227,183,120,.16) 0%, transparent 58%),
+    radial-gradient(90% 60% at 12% -6%, rgba(232,160,168,.12) 0%, transparent 60%),
+    linear-gradient(178deg, var(--night-deep) 0%, var(--night) 46%, #1D1636 100%);
+}
+#petals{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* ── екрани ── */
+.screen{
+  position:fixed;inset:0;z-index:2;
+  display:none;flex-direction:column;
+  padding:calc(var(--s4) + env(safe-area-inset-top)) var(--s3) calc(var(--s3) + env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.live{display:flex}
+.screen.entering{animation:rise .82s var(--ease) both}
+.screen.leaving{animation:sink .46s ease-in both;pointer-events:none}
+@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.985);filter:blur(6px)}
+                to{opacity:1;transform:none;filter:none}}
+@keyframes sink{to{opacity:0;transform:scale(1.04);filter:blur(9px)}}
+
+.mid{margin:auto;width:100%;max-width:520px;text-align:center}
+
+h1,h2{font-family:var(--serif);font-weight:400;color:var(--paper);margin:0;letter-spacing:.01em}
+h1{font-size:clamp(30px,8.5vw,46px);line-height:1.12}
+h2{font-size:clamp(23px,6.2vw,30px);line-height:1.22}
+.sub{font-size:14px;color:rgba(246,237,221,.5);margin-top:var(--s2);max-width:34ch;
+     margin-left:auto;margin-right:auto}
+
+/* ═══════════ 1. ЗАВАНТАЖЕННЯ ═══════════ */
+#boot .mid{max-width:420px}
+#bootline{
+  font-family:var(--serif);font-size:clamp(21px,5.6vw,27px);
+  color:var(--paper);line-height:1.45;min-height:2.9em;
+}
+#bootline span{opacity:0;animation:ink .5s ease forwards}
+@keyframes ink{to{opacity:1}}
+#dial{width:56px;height:56px;margin:var(--s5) auto 0;display:block}
+#dial circle{fill:none;stroke-width:1;stroke-linecap:round}
+#dial .track{stroke:rgba(227,183,120,.14)}
+#dial .arc{stroke:var(--gold);stroke-dasharray:163;stroke-dashoffset:163;
+  transform:rotate(-90deg);transform-origin:50% 50%;
+  animation:arc 2.5s var(--ease) forwards}
+@keyframes arc{to{stroke-dashoffset:0}}
+
+/* ═══════════ 2. ЗАМОК / КВІТИ ═══════════ */
+#lock .mid{max-width:560px}
+.grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);
+  margin-top:var(--s4);
+}
+@media(max-width:400px){.grid{gap:9px}}
+.bloom{
+  position:relative;padding:var(--s2) 4px 10px;border-radius:3px;
+  border:1px solid rgba(227,183,120,.16);
+  background:linear-gradient(180deg,rgba(47,39,87,.34),rgba(37,30,68,.14));
+  color:var(--gold-dim);
+  transition:border-color .35s var(--ease),background .35s var(--ease),
+             color .35s var(--ease),transform .25s var(--ease);
+}
+.bloom svg{width:100%;height:auto;display:block;color:inherit}
+.bloom .nm{
+  display:block;font-size:11.5px;letter-spacing:.03em;margin-top:7px;
+  color:rgba(246,237,221,.42);transition:color .35s var(--ease);
+  font-weight:400;
+}
+.bloom:active{transform:scale(.965)}
+.bloom.on{
+  border-color:rgba(227,183,120,.72);color:var(--gold);
+  background:linear-gradient(180deg,rgba(227,183,120,.15),rgba(232,160,168,.07));
+  box-shadow:0 0 26px -8px rgba(227,183,120,.5);
+}
+.bloom.on .nm{color:var(--paper)}
+.bloom.wrong{animation:nope .42s ease}
+@keyframes nope{0%,100%{transform:none}22%{transform:translateX(-7px)}
+                48%{transform:translateX(6px)}74%{transform:translateX(-3px)}}
+
+#hint{min-height:1.5em;font-size:13.5px;color:var(--blush);
+      margin-top:var(--s3);opacity:0;transition:opacity .3s}
+#hint.show{opacity:1}
+
+/* ═══════════ 3. КОНВЕРТ ═══════════ */
+#letter{justify-content:center}
+.env-stage{position:relative;width:min(340px,86vw);margin:var(--s4) auto 0;
+  perspective:1400px;cursor:pointer}
+.env{position:relative;width:100%;aspect-ratio:1.52/1;transform-style:preserve-3d}
+.env-body{position:absolute;inset:0;border-radius:2px;
+  background:linear-gradient(160deg,#F2E7D3,#DFCEB2 62%,#D2BE9D);
+  box-shadow:0 26px 60px -22px rgba(0,0,0,.75)}
+.env-body::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom right,transparent 49.4%,rgba(0,0,0,.07) 50%),
+             linear-gradient(to bottom left,transparent 49.4%,rgba(0,0,0,.07) 50%)}
+.flap{position:absolute;top:0;left:0;width:100%;height:52%;
+  transform-origin:top center;transform-style:preserve-3d;
+  transition:transform 1s var(--ease);z-index:4}
+.flap-face{position:absolute;inset:0;
+  background:linear-gradient(175deg,#EADCC3,#D9C4A4);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  box-shadow:0 3px 8px -3px rgba(0,0,0,.3)}
+.env.open .flap{transform:rotateX(-172deg)}
+.seal{position:absolute;left:50%;top:52%;width:62px;height:62px;
+  margin:-31px 0 0 -31px;border-radius:50%;z-index:6;
+  background:radial-gradient(circle at 34% 28%,#C9707A,#9E3F4C 62%,#7A2B37);
+  box-shadow:0 5px 16px -4px rgba(0,0,0,.6),inset 0 -2px 5px rgba(0,0,0,.3);
+  display:grid;place-items:center;
+  font-family:var(--serif);font-size:27px;color:rgba(255,232,232,.9);
+  transition:transform .7s var(--ease),opacity .6s ease}
+.env.open .seal{transform:translate(26px,-96px) rotate(38deg) scale(.72);opacity:0}
+.note{position:absolute;left:5%;bottom:6%;width:90%;z-index:2;
+  background:var(--paper);border-radius:1px;
+  padding:var(--s4) var(--s3);
+  box-shadow:0 20px 44px -20px rgba(0,0,0,.7);
+  transform:translateY(0) scale(.97);opacity:0;
+  transition:transform 1.05s var(--ease) .38s,opacity .5s ease .38s}
+.env.open .note{opacity:1;transform:translateY(-52%) scale(1)}
+.tap-cue{margin-top:var(--s3);font-size:13px;color:rgba(227,183,120,.75);
+  animation:breathe 2.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+
+/* розгорнутий вірш */
+#page-stage{display:none;perspective:1700px;perspective-origin:0% 46%}
+#page-stage.show{display:block}
+#page-wrap{transform-style:preserve-3d;transform-origin:left center;will-change:transform}
+#poem{
+  position:relative;max-width:430px;margin:0 auto;
+  background:var(--paper);color:var(--ink);
+  padding:var(--s5) clamp(20px,6vw,38px) calc(var(--s5) + 14px);
+  border-radius:2px;text-align:left;overflow:hidden;
+  box-shadow:0 30px 70px -28px rgba(0,0,0,.8);
+  background-image:radial-gradient(rgba(120,100,70,.045) 1px,transparent 1px);
+  background-size:4px 4px;
+  animation:unfold 1.15s var(--ease) both;
+}
+@keyframes unfold{
+  from{opacity:0;transform:scaleY(.06) translateY(40px);transform-origin:top center}
+  55%{opacity:1}
+  to{opacity:1;transform:none}}
+#poem p{font-family:var(--serif);font-size:19px;line-height:1.62;margin:0 0 1.05em}
+#poem .to{font-size:26px;margin-bottom:1.1em;color:#7A5A44}
+#poem .fleur{margin:1.6em 0 0;text-align:center;font-size:22px;color:#B08A6A}
+
+/* загнутий куточок */
+#corner{position:absolute;right:0;bottom:0;width:70px;height:70px;
+  touch-action:none;cursor:grab;z-index:3;transform-origin:100% 100%;
+  animation:peel 3.6s ease-in-out infinite}
+#corner.grab{animation:none;cursor:grabbing}
+#corner .gap{position:absolute;inset:0;background:#100C21;
+  clip-path:polygon(100% 0,100% 100%,0 100%)}
+#corner .fold{position:absolute;inset:0;
+  background:linear-gradient(135deg,#FDF8EC 6%,#E4D2B4 58%,#C9B492);
+  clip-path:polygon(0 0,100% 0,0 100%);
+  filter:drop-shadow(-3px -3px 7px rgba(0,0,0,.3))}
+@keyframes peel{0%,100%{transform:scale(.78)}50%{transform:scale(1)}}
+#turn-hint{margin-top:var(--s3);font-size:12.5px;
+  color:rgba(227,183,120,.6);transition:opacity .4s}
+
+/* ═══════════ 4. ПЛАН ДНЯ ═══════════ */
+#plan{padding-bottom:122px}
+#plan .mid{max-width:600px;text-align:left}
+#plan h2,#plan .sub{text-align:center}
+
+/* точка відліку */
+.anchor{
+  margin:var(--s4) auto 0;max-width:440px;
+  border:1px solid rgba(227,183,120,.28);border-radius:3px;
+  background:linear-gradient(180deg,rgba(227,183,120,.11),rgba(47,39,87,.22));
+  padding:var(--s3);display:flex;gap:var(--s3);align-items:center}
+.anchor input{
+  font-family:var(--serif);font-size:36px;line-height:1;color:var(--gold);
+  background:none;border:none;padding:0;width:3.1em;flex:none}
+.anchor input::-webkit-calendar-picker-indicator{display:none}
+.anchor .who{font-size:13px;color:rgba(246,237,221,.5);line-height:1.4}
+.anchor .who b{display:block;color:var(--paper);font-weight:500;font-size:14.5px;
+  font-family:var(--sans);margin-bottom:2px}
+
+.cat{margin-top:var(--s5)}
+.cat > h3{
+  font-family:var(--serif);font-size:22px;font-weight:400;color:var(--gold);
+  margin:0 0 var(--s2);padding-bottom:7px;
+  border-bottom:1px solid rgba(227,183,120,.18);letter-spacing:.01em}
+.act{
+  display:block;width:100%;text-align:left;
+  padding:13px var(--s2) 13px 46px;position:relative;
+  border-radius:3px;margin-bottom:6px;
+  background:rgba(47,39,87,.28);
+  border:1px solid transparent;
+  transition:background .3s var(--ease),border-color .3s var(--ease)}
+.act::before{
+  content:attr(data-n);
+  position:absolute;left:14px;top:14px;width:20px;height:20px;
+  border:1px solid rgba(227,183,120,.35);border-radius:50%;
+  display:grid;place-items:center;
+  font-size:11px;font-weight:600;color:#241B12;
+  transition:all .3s var(--ease)}
+.act.on{background:rgba(227,183,120,.11);border-color:rgba(227,183,120,.4)}
+.act.on::before{background:var(--gold);border-color:var(--gold)}
+.act.fixed{background:rgba(232,160,168,.11);border-color:rgba(232,160,168,.38)}
+.act.fixed::before{background:var(--blush);border-color:var(--blush);color:#2A1116}
+.act .t{color:var(--paper);font-size:15px;display:block}
+.act .w{font-size:12.5px;color:rgba(246,237,221,.4);display:block;margin-top:1px}
+.act .lock{font-size:11.5px;color:var(--blush);display:block;margin-top:3px}
+
+.opts{display:none;flex-wrap:wrap;gap:6px;padding:2px 0 13px 46px}
+.opts.show{display:flex}
+.opt{padding:6px 13px;border-radius:20px;font-size:13px;
+  border:1px solid rgba(227,183,120,.26);color:rgba(246,237,221,.62);
+  transition:all .25s var(--ease)}
+.opt.on{background:var(--gold);color:#241B12;border-color:var(--gold);font-weight:500}
+
+/* ── розклад ── */
+#route{margin-top:var(--s5);
+  border-top:1px solid rgba(227,183,120,.18);padding-top:var(--s3)}
+#route h3{font-family:var(--serif);font-size:22px;font-weight:400;
+  color:var(--blush);margin:0 0 var(--s3)}
+#empty{font-size:13.5px;color:rgba(246,237,221,.34);margin:0}
+.leg{display:flex;gap:var(--s2);align-items:flex-start;padding:11px 0}
+.leg + .leg{border-top:1px solid rgba(227,183,120,.09)}
+.leg .tm{font-family:var(--serif);font-size:21px;color:var(--gold);
+  min-width:2.7em;flex:none;line-height:1.25}
+.leg .bd{flex:1;min-width:0}
+.leg .bd .t{color:var(--paper);font-size:14.5px;line-height:1.35}
+.leg .bd .o{font-size:12.5px;color:var(--blush)}
+.dur{margin-top:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;
+  border:1px solid rgba(227,183,120,.28);color:rgba(227,183,120,.85)}
+.leg .ctl{display:flex;gap:5px;flex:none}
+.leg .ctl button{width:27px;height:27px;border-radius:50%;line-height:1;
+  border:1px solid rgba(227,183,120,.22);color:var(--gold);font-size:13px;
+  display:grid;place-items:center}
+.leg .ctl button[disabled]{opacity:.22}
+.walk{font-size:11px;color:rgba(246,237,221,.28);padding-left:3.4em}
+#endline{margin-top:var(--s3);padding-top:var(--s3);
+  border-top:1px solid rgba(232,160,168,.22);
+  font-family:var(--serif);font-size:19px;color:var(--blush)}
+
+#note-in{
+  width:100%;margin-top:var(--s3);padding:14px;border-radius:3px;resize:vertical;
+  background:rgba(47,39,87,.3);border:1px solid rgba(227,183,120,.2);
+  color:var(--paper);font-family:var(--sans);font-size:14.5px;min-height:78px}
+#note-in::placeholder{color:rgba(246,237,221,.32)}
+
+#bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:9;
+  padding:var(--s2) var(--s3) calc(var(--s2) + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--night-deep) 58%,rgba(11,8,24,0));
+  display:none;gap:var(--s2);align-items:center;justify-content:center}
+#bar.show{display:flex}
+#tally{font-size:13px;color:rgba(246,237,221,.5);white-space:nowrap}
+
+.btn{
+  padding:14px var(--s4);border-radius:2px;
+  background:var(--gold);color:#241B12;font-weight:600;font-size:15px;
+  letter-spacing:.015em;transition:transform .2s var(--ease),opacity .25s;
+  box-shadow:0 10px 30px -12px rgba(227,183,120,.65)}
+.btn:active{transform:scale(.97)}
+.btn[disabled]{opacity:.32;box-shadow:none}
+.btn.ghost{background:none;color:var(--gold);box-shadow:none;
+  border:1px solid rgba(227,183,120,.4);font-weight:400}
+
+/* ═══════════ 5. ГРА ═══════════ */
+#game{justify-content:flex-start}
+#game .mid{max-width:460px}
+#board{
+  --pad:5px; --gap:2px;
+  position:relative;width:min(358px,88vw);aspect-ratio:1;
+  margin:var(--s4) auto 0;touch-action:none;
+  display:grid;grid-template-columns:repeat(8,1fr);gap:var(--gap);
+  padding:var(--pad);border-radius:5px;
+  background:rgba(47,39,87,.32);border:1px solid rgba(227,183,120,.16);
+  transition:gap .7s var(--ease),padding .7s var(--ease),
+             background .7s ease,border-color .7s ease}
+.cell{border-radius:2px;background-color:rgba(11,8,24,.5);
+  background-image:none;background-size:800% 800%;background-repeat:no-repeat;
+  transition:background-color .25s}
+.cell.on{background-image:var(--pic);background-color:transparent;
+  animation:pop .34s var(--ease)}
+@keyframes pop{from{transform:scale(.55);opacity:0}to{transform:none;opacity:1}}
+.cell.hint{background-color:rgba(227,183,120,.34)}
+.cell.bad{background-color:rgba(232,160,168,.2)}
+#board.won{gap:0;padding:0;background:none;border-color:transparent}
+#board.won .cell{border-radius:0}
+
+#tray{display:flex;justify-content:center;align-items:center;
+  gap:var(--s4);margin-top:var(--s4);min-height:92px}
+.piece{display:grid;gap:2px;touch-action:none;cursor:grab;
+  transition:opacity .3s,transform .2s var(--ease)}
+.piece.used{opacity:.12;pointer-events:none;transform:scale(.8)}
+.blk{width:var(--pb,17px);height:var(--pb,17px);border-radius:2px;
+  background:linear-gradient(158deg,#F0CB92,#C7924F);
+  box-shadow:inset 0 -2px 0 rgba(90,55,15,.28)}
+#ghost{position:fixed;z-index:50;pointer-events:none;display:none;
+  gap:2px;opacity:.94;filter:drop-shadow(0 12px 20px rgba(0,0,0,.55))}
+#progress{margin-top:var(--s3);font-size:13px;color:rgba(246,237,221,.42)}
+#won-line{margin-top:var(--s4);font-family:var(--serif);
+  font-size:clamp(21px,5.6vw,27px);color:var(--paper);
+  opacity:0;transition:opacity 1.3s ease .45s}
+#won-line.show{opacity:1}
+
+/* ── тости ── */
+#toast{
+  position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));
+  transform:translate(-50%,16px);z-index:40;
+  padding:11px 20px;border-radius:2px;font-size:13.5px;
+  background:var(--paper);color:var(--ink);
+  box-shadow:0 14px 34px -12px rgba(0,0,0,.7);
+  opacity:0;pointer-events:none;transition:all .4s var(--ease);max-width:88vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div id="sky"></div>
+<canvas id="petals"></canvas>
+
+<!-- 1 ─────────────────────────────────────── -->
+<section class="screen live" id="boot">
+  <div class="mid">
+    <div id="bootline"></div>
+    <svg id="dial" viewBox="0 0 56 56">
+      <circle class="track" cx="28" cy="28" r="26"/>
+      <circle class="arc" cx="28" cy="28" r="26"/>
+    </svg>
+  </div>
+</section>
+
+<!-- 2 ─────────────────────────────────────── -->
+<section class="screen" id="lock">
+  <div class="mid">
+    <h1>Спершу одне питання</h1>
+    <p class="sub">Обери квіти, які ти любиш. Всі свої — і жодної чужої.</p>
+    <div class="grid" id="grid"></div>
+    <p id="hint"></p>
+  </div>
+</section>
+
+<!-- 3 ─────────────────────────────────────── -->
+<section class="screen" id="letter">
+  <div class="mid">
+    <h2 id="env-title">Ангеліна, це тобі</h2>
+    <div class="env-stage" id="stage">
+      <div class="env" id="env">
+        <div class="env-body"></div>
+        <div class="note"></div>
+        <div class="flap"><div class="flap-face"></div></div>
+        <div class="seal">А</div>
+      </div>
+    </div>
+    <p class="tap-cue" id="cue">натисни на конверт</p>
+
+    <div id="page-stage">
+      <div id="page-wrap">
+        <div id="poem">
+          <p class="to">Ангеліна,</p>
+          <p>Є речі, які я кажу погано вголос — вони стають малими, щойно їх вимовиш. Тому нехай замість мене скажуть квіти 🌷 ти впізнала їх з першого погляду, як я впізнаю тебе в будь-якому натовпі.</p>
+          <p>Я знаю, яким був твій вчорашній день. Скільки ти тягнула на собі як білка в колесі і як пізно нарешті видихнула дома. Ти цього нікому не показуєш, але я бачу 🤍 Мені не треба великих подій. Мені треба, щоб сьогодні ти нікуди не бігла і відпочивала. Кава, яку ти немала часу допити ☕ Багет зі сімки як одна їжа аж до ночі. В тебе був дійсно важкий вчорашній день, тож перевернути сторінку і обрати, яким буде наш день сьогодні. Це вся твоя робота =)</p>
+          <p class="fleur">❦</p>
+          <div id="corner"><span class="gap"></span><span class="fold"></span></div>
+        </div>
+      </div>
+      <p id="turn-hint">потягни за куточок</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 ─────────────────────────────────────── -->
+<section class="screen" id="plan">
+  <div class="mid">
+    <h2>Що будемо робити?</h2>
+    <p class="sub">Твій поїзд приходить о 12:40. Далі день твій — обери, і час порахується сам.</p>
+
+    <div class="anchor">
+      <input type="time" id="start" value="12:40" aria-label="Час прибуття поїзда">
+      <span class="who"><b>Львів-Головний</b>я вже на пероні</span>
+    </div>
+
+    <div id="cats"></div>
+
+    <div id="route">
+      <h3>Наш день</h3>
+      <div id="legs"></div>
+      <p id="empty">Обери щось зверху — тут складеться розклад.</p>
+      <div id="endline"></div>
+    </div>
+
+    <textarea id="note-in" placeholder="Хочеш щось дописати?"></textarea>
+  </div>
+</section>
+<div id="bar">
+  <span id="tally"></span>
+  <button class="btn" id="send" onclick="sendPlan()">Надіслати</button>
+</div>
+
+<!-- 5 ─────────────────────────────────────── -->
+<section class="screen" id="game">
+  <div class="mid">
+    <h2>Ще одне, останнє</h2>
+    <p class="sub">Заповни поле — і побачиш, що під ним.</p>
+    <div id="board"></div>
+    <div id="tray"></div>
+    <p id="progress"></p>
+    <p id="won-line">Це ми. Далі — по твоєму плану 🤍</p>
+  </div>
+</section>
+<div id="ghost"></div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   НАЛАШТУВАННЯ — заповни перед деплоєм
+   ═══════════════════════════════════════════ */
+const CONFIG = {
+  endpoint : 'https://angelina-plan.drala6659.workers.dev',
+  photo    : 'photo.jpg',     // квадратне фото поруч з index.html
+  name     : 'АНГЕЛІНА'
+};
+
+/* ── Telegram ── */
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready(); tg.expand();
+  try { tg.setHeaderColor('#0B0818'); tg.setBackgroundColor('#0B0818'); } catch(e){}
+  try { tg.disableVerticalSwipes(); } catch(e){}
+}
+const buzz = t => { try { tg.HapticFeedback.impactOccurred(t||'light'); } catch(e){} };
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+function toast(msg, ms=2600){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+/* ── навігація ── */
+let current = 'boot';
+function go(id){
+  if (id === current) return;
+  const from = document.getElementById(current), to = document.getElementById(id);
+  from.classList.add('leaving');
+  setTimeout(()=>{
+    from.classList.remove('live','leaving');
+    to.classList.add('live','entering');
+    to.scrollTop = 0;
+    setTimeout(()=>to.classList.remove('entering'), 900);
+    current = id;
+    document.getElementById('bar').classList.toggle('show', id === 'plan');
+    if (id === 'game') startGame();
+  }, reduce ? 10 : 440);
+}
+
+/* ═══════ ПЕЛЮСТКИ ═══════ */
+(function(){
+  const c = document.getElementById('petals'), x = c.getContext('2d');
+  let w, h, ps = [];
+  const fit = () => {
+    const d = Math.min(devicePixelRatio || 1, 2);
+    w = innerWidth; h = innerHeight;
+    c.width = w*d; c.height = h*d; c.style.width = w+'px'; c.style.height = h+'px';
+    x.setTransform(d,0,0,d,0,0);
+  };
+  fit(); addEventListener('resize', fit);
+  const born = () => ({
+    x: Math.random()*w, y: h + 20 + Math.random()*h*.5,
+    r: 3 + Math.random()*5, sp: .22 + Math.random()*.55,
+    dr: (Math.random()-.5)*.32, a: Math.random()*Math.PI*2,
+    sw: .006 + Math.random()*.014, o: .12 + Math.random()*.4,
+    hue: Math.random() > .58 ? '227,183,120' : '232,160,168'
+  });
+  for (let i=0;i<34;i++){ const p = born(); p.y = Math.random()*h; ps.push(p); }
+  if (reduce){ ps = ps.slice(0,10); }
+  (function loop(){
+    x.clearRect(0,0,w,h);
+    for (const p of ps){
+      p.y -= p.sp; p.a += p.sw; p.x += p.dr + Math.sin(p.a)*.4;
+      if (p.y < -25){ Object.assign(p, born()); }
+      x.save(); x.translate(p.x,p.y); x.rotate(p.a);
+      x.fillStyle = `rgba(${p.hue},${p.o})`;
+      x.beginPath(); x.ellipse(0,0,p.r,p.r*.46,0,0,7); x.fill();
+      x.restore();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ═══════ 1. ЗАВАНТАЖЕННЯ ═══════ */
+(function(){
+  const line = 'Хвилинку. Я тут дещо приготував.';
+  const box = document.getElementById('bootline');
+  [...line].forEach((ch,i)=>{
+    const s = document.createElement('span');
+    s.textContent = ch === ' ' ? '\u00A0' : ch;
+    s.style.animationDelay = (280 + i*42) + 'ms';
+    box.appendChild(s);
+  });
+  setTimeout(()=>go('lock'), reduce ? 600 : 2900);
+})();
+
+/* ═══════ 2. КВІТИ ═══════ */
+const RIGHT = ['ranunculus','eustoma','rose','carnation'];
+
+function ring(cx,cy,r,n,w,rot=0,inner=.34,bulge=1.3){
+  let d = '';
+  for (let i=0;i<n;i++){
+    const a = rot + i*2*Math.PI/n, a1 = a-w, a2 = a+w;
+    const P = (g,rr)=>[(cx+Math.cos(g)*rr).toFixed(1),(cy+Math.sin(g)*rr).toFixed(1)];
+    const s = P(a1,r*inner), e = P(a2,r*inner);
+    const c1 = P(a1,r*bulge), c2 = P(a2,r*bulge);
+    d += `M${s[0]} ${s[1]}C${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${e[0]} ${e[1]}`;
+  }
+  return d;
+}
+const svg = body =>
+  `<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="currentColor"
+   stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`;
+
+const stem = `<path d="M50 76v18M50 86c-7 0-11-4-12-9 6-1 11 2 12 9M50 82c6 0 10-3 11-8-5-1-10 2-11 8"/>`;
+
+const FLOWERS = {
+  ranunculus: svg(
+    `<path d="${ring(50,46,30,11,.30,0)}"/><path d="${ring(50,46,24,9,.33,.35)}"/>` +
+    `<path d="${ring(50,46,18,7,.38,0)}"/><path d="${ring(50,46,12,6,.42,.5)}"/>` +
+    `<circle cx="50" cy="46" r="3.4"/>` + stem),
+  eustoma: svg(
+    `<path d="${ring(50,46,31,5,.52,-1.57,.22,1.42)}"/>` +
+    `<path d="${ring(50,46,20,5,.5,-.94,.24,1.4)}"/>` +
+    `<path d="M50 46v-9M50 46l7 6M50 46l-7 6M50 46l9-2M50 46l-9-2"/>` +
+    `<circle cx="50" cy="46" r="2.6"/>` + stem),
+  rose: svg(
+    `<path d="${ring(50,46,30,6,.44,.25,.3,1.32)}"/>` +
+    `<path d="${ring(50,46,22,5,.46,-.4,.3,1.34)}"/>` +
+    `<path d="M50 34c8 0 13 6 13 12s-6 12-13 12-13-5-13-12c0-5 4-9 9-9s8 3 8 7-3 6-6 6-5-2-5-4"/>` +
+    stem),
+  carnation: svg(
+    `<path d="${ring(50,44,29,9,.34,.18,.3,1.3)}"/>` +
+    `<path d="${ring(50,44,21,8,.36,-.2,.3,1.3)}"/>` +
+    `<path d="M34 40l3-5 3 5 3-5 3 5 4-5 3 5 3-5 3 5 3-5 3 5"/>` +
+    `<path d="M43 62h14l-3 14H46z"/>` +
+    `<path d="M50 76v18"/>`),
+  tulip: svg(
+    `<path d="M35 34c0 18 5 30 15 30s15-12 15-30c-4 5-8 7-15 7s-11-2-15-7z"/>` +
+    `<path d="M50 41v23M42 36c0 13 3 22 8 26M58 36c0 13-3 22-8 26"/>` +
+    `<path d="M50 64v30"/>` +
+    `<path d="M50 84c-8 0-13-5-14-11 7-1 13 3 14 11"/>`),
+  lily: svg(
+    `<path d="${ring(50,44,30,6,.24,-1.57,.16,1.5)}"/>` +
+    `<path d="M50 44l-9 16M50 44l9 16M50 44v18M50 44l-14 8M50 44l14 8"/>` +
+    `<circle cx="41" cy="60.5" r="1.7"/><circle cx="59" cy="60.5" r="1.7"/>` +
+    `<circle cx="50" cy="62.5" r="1.7"/><circle cx="36" cy="52.5" r="1.7"/>` +
+    `<circle cx="64" cy="52.5" r="1.7"/>` +
+    `<path d="M50 68v26"/>`)
+};
+
+const DECK = [
+  ['ranunculus','ранункулюс'], ['tulip','тюльпан'], ['eustoma','еустома'],
+  ['rose','троянда'],          ['lily','лілія'],    ['carnation','гвоздика (мікс)']
+];
+const picked = new Set();
+
+const grid = document.getElementById('grid');
+DECK.forEach(([id,nm])=>{
+  const b = document.createElement('button');
+  b.className = 'bloom'; b.dataset.id = id;
+  b.setAttribute('aria-pressed','false');
+  b.innerHTML = FLOWERS[id] + `<span class="nm">${nm}</span>`;
+  b.onclick = ()=>toggleBloom(b,id);
+  grid.appendChild(b);
+});
+
+const hint = document.getElementById('hint');
+function say(t){ hint.textContent = t; hint.classList.add('show'); }
+
+function toggleBloom(el,id){
+  buzz('light');
+  if (picked.has(id)){ picked.delete(id); el.classList.remove('on'); el.setAttribute('aria-pressed','false'); }
+  else { picked.add(id); el.classList.add('on'); el.setAttribute('aria-pressed','true'); }
+  hint.classList.remove('show');
+  if (picked.size < 4) return;
+
+  const ok = picked.size === 4 && RIGHT.every(f=>picked.has(f));
+  if (ok){ buzz('medium'); say('Так. Саме вони.'); setTimeout(()=>go('letter'), 1150); }
+  else if (picked.size >= 4){
+    buzz('rigid');
+    grid.querySelectorAll('.bloom.on').forEach(n=>{
+      n.classList.add('wrong'); setTimeout(()=>n.classList.remove('wrong'), 460);
+    });
+    say('Одна тут зайва. Прибери її.');
+  }
+}
+
+/* ═══════ 3. КОНВЕРТ ═══════ */
+document.getElementById('stage').onclick = function(){
+  const env = document.getElementById('env');
+  if (env.classList.contains('open')) return;
+  buzz('medium'); env.classList.add('open');
+  document.getElementById('cue').style.display = 'none';
+  setTimeout(()=>{
+    document.getElementById('stage').style.display = 'none';
+    document.getElementById('env-title').style.display = 'none';
+    document.getElementById('page-stage').classList.add('show');
+  }, reduce ? 30 : 1500);
+};
+
+/* ── перегортання сторінки ── */
+(function(){
+  const wrap   = document.getElementById('page-wrap');
+  const corner = document.getElementById('corner');
+  const hint   = document.getElementById('turn-hint');
+  const MAX = -108, DONE = -34;
+  let drag = false, x0 = 0, deg = 0, moved = 0, over = false;
+
+  const apply = d =>{
+    wrap.style.transform = `rotateY(${d}deg)`;
+    wrap.style.opacity = 1 + d/240;
+    const k = Math.min(1, -d/70);
+    corner.style.opacity = 1 - k;
+  };
+
+  function turn(){
+    if (over) return; over = true;
+    buzz('medium');
+    wrap.style.transition = 'transform .85s cubic-bezier(.5,0,.35,1), opacity .85s ease';
+    apply(MAX);
+    setTimeout(()=>go('plan'), reduce ? 30 : 620);
+  }
+  function back(){
+    wrap.style.transition = 'transform .5s cubic-bezier(.22,1.2,.4,1), opacity .4s ease';
+    apply(0);
+  }
+
+  corner.addEventListener('pointerdown', e=>{
+    if (over) return;
+    drag = true; moved = 0; x0 = e.clientX;
+    corner.classList.add('grab');
+    corner.setPointerCapture(e.pointerId);
+    wrap.style.transition = 'none';
+    e.preventDefault();
+  });
+  corner.addEventListener('pointermove', e=>{
+    if (!drag) return;
+    const dx = e.clientX - x0;
+    moved = Math.max(moved, Math.abs(dx));
+    deg = Math.max(MAX, Math.min(0, dx * .42));
+    apply(deg);
+    if (moved > 6) hint.style.opacity = 0;
+  });
+  const release = ()=>{
+    if (!drag) return;
+    drag = false; corner.classList.remove('grab');
+    if (moved < 7) turn();            // просто тап — теж гортає
+    else if (deg <= DONE) turn();
+    else { back(); deg = 0; }
+  };
+  corner.addEventListener('pointerup', release);
+  corner.addEventListener('pointercancel', release);
+
+  corner.tabIndex = 0;
+  corner.setAttribute('role','button');
+  corner.setAttribute('aria-label','Перегорнути сторінку');
+  corner.addEventListener('keydown', e=>{
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); turn(); }
+  });
+})();
+
+/* ═══════ 4. ПЛАН ═══════ */
+const TRANSIT = 15;                 // хвилин на дорогу між пунктами
+const PACE = [                      // темп, який можна перемикати тапом
+  { k:.65, nm:'швидко' }, { k:1, nm:'як є' }, { k:1.45, nm:'не поспішаючи' }
+];
+
+const ACTIVITIES = [
+  { cat:'Вже вирішено', items:[
+    { id:'mall', t:'Victoria Gardens', w:'Кульпарківська, 226а · 10 хв від вокзалу',
+      dur:150, fixed:true,
+      opts:['одяг','косметика','все підряд','і поїсти там'] }
+  ]},
+  { cat:'Одразу з вокзалу', items:[
+    { id:'lunch', t:'Пообідати', dur:60, opts:['щось швидке','сісти нормально'] },
+    { id:'drop',  t:'Закинути валізу', w:'щоб не тягати за собою', dur:40 },
+    { id:'coffee',t:'Кава в італійському дворику', w:'площа Ринок, 6', dur:45 }
+  ]},
+  { cat:'Пройтись', items:[
+    { id:'oldtown', t:'Заблукати в старому місті', w:'без маршруту', dur:60 },
+    { id:'rynok',   t:'Вечірня прогулянка площею Ринок', w:'коли ліхтарі', dur:45 },
+    { id:'tram',    t:'Ретро-трамвай через центр', dur:40 },
+    { id:'castle',  t:'Високий Замок на захід сонця', w:'сонце сідає близько 19:40', dur:60 },
+    { id:'park',    t:'Стрийський парк', dur:50,
+      opts:['оранжерея','качки','просто ходити','пікнік'] },
+    { id:'photo',   t:'Фотосесія по місту', w:'образи обираєш ти', dur:60 },
+    { id:'choco',   t:'Львівська майстерня шоколаду', w:'Сербська, 3', dur:30 },
+    { id:'mine',    t:'Львівська копальня кави', w:'площа Ринок, 10', dur:45 },
+    { id:'ocean',   t:'Океанаріум', dur:60 },
+    { id:'under',   t:'Екскурсія львівськими підземеллями', dur:60 }
+  ]},
+  { cat:'Зробити руками', items:[
+    { id:'clay', t:'Пластилінове побачення', w:'тільки пластилін, нічого іншого', dur:90 },
+    { id:'cook', t:'Приготувати те, що не вміємо', dur:80,
+      opts:['паста','суші','десерт','піца'] }
+  ]},
+  { cat:'Ще купити', items:[
+    { id:'books',   t:'Книгарня і по книжці одне одному', dur:40 },
+    { id:'vintage', t:'Вінтаж і секонди', w:'знайти щось дурне', dur:50 }
+  ]},
+  { cat:'Позмагатись', items:[
+    { id:'quest',   t:'Квест-кімната удвох', dur:75 },
+    { id:'pid5',    t:'5-те Підземелля', dur:75 },
+    { id:'bowl',    t:'Боулінг Papashon', dur:90 },
+    { id:'billiard',t:'Більярд', dur:90 },
+    { id:'karting', t:'Картинг', dur:60 },
+    { id:'vr',      t:'VR-розваги', dur:60 },
+    { id:'jump',    t:'Батути в Dragon Park', dur:60 },
+    { id:'luna',    t:'Парк атракціонів', dur:90 }
+  ]},
+  { cat:'Коли стемніє', items:[
+    { id:'dinner', t:'Вечеря', dur:90,
+      opts:['Ресторація Бачевських','Mons Pius','Valentino',
+            'Найдорожча ресторація Галичини','Seven Restopub',
+            'Добрий Друг','Добрий Друг 4','наше місце','доставка додому'] },
+    { id:'roof',   t:'Кіно на даху', dur:120,
+      opts:['Центр Довженка, Сихів','дах з проєктором','вдома під ковдрою'] },
+    { id:'planet', t:'Планетарій', w:'зорі і тиша', dur:50 },
+    { id:'wine',   t:'Винний бар', dur:75 },
+    { id:'cocktail',t:'Коктейльний бар', dur:75 },
+    { id:'home',   t:'Домашній вечір', dur:120, opts:['серіал','настолки','нічого не робити'] }
+  ]}
+];
+
+const BY_ID = {};
+ACTIVITIES.forEach(g=>g.items.forEach(i=>BY_ID[i.id] = i));
+
+const chosen = new Map();     // id -> {opt, pace}
+let order = [];               // порядок у маршруті
+const nodes = {};             // id -> {btn, optRow}
+
+/* ── список активностей ── */
+const cats = document.getElementById('cats');
+ACTIVITIES.forEach(group=>{
+  const sec = document.createElement('div');
+  sec.className = 'cat';
+  sec.innerHTML = `<h3>${group.cat}</h3>`;
+
+  group.items.forEach(it=>{
+    const btn = document.createElement('button');
+    btn.className = 'act' + (it.fixed ? ' fixed' : '');
+    btn.dataset.n = ''; btn.setAttribute('aria-pressed','false');
+    btn.innerHTML = `<span class="t">${it.t}</span>`
+      + (it.w ? `<span class="w">${it.w}</span>` : '')
+      + (it.fixed ? `<span class="lock">це не обговорюється</span>` : '');
+    sec.appendChild(btn);
+
+    const optRow = document.createElement('div');
+    optRow.className = 'opts';
+    (it.opts || []).forEach(o=>{
+      const ob = document.createElement('button');
+      ob.className = 'opt'; ob.textContent = o;
+      ob.onclick = e=>{
+        e.stopPropagation(); buzz('light');
+        const off = ob.classList.contains('on');
+        optRow.querySelectorAll('.opt').forEach(n=>n.classList.remove('on'));
+        if (!off) ob.classList.add('on');
+        if (chosen.has(it.id)) chosen.get(it.id).opt = off ? null : o;
+        render();
+      };
+      optRow.appendChild(ob);
+    });
+    sec.appendChild(optRow);
+    nodes[it.id] = { btn, optRow };
+
+    btn.onclick = ()=>{
+      if (it.fixed && chosen.has(it.id)){
+        buzz('rigid'); toast('Це вже вирішено. Але можна посунути в часі.');
+        return;
+      }
+      buzz('light');
+      if (chosen.has(it.id)){
+        chosen.delete(it.id);
+        order = order.filter(x=>x !== it.id);
+      } else {
+        chosen.set(it.id, { opt:null, pace:1 });
+        order.push(it.id);
+      }
+      render();
+    };
+  });
+  cats.appendChild(sec);
+});
+
+/* Victoria Gardens стоїть у плані з самого початку */
+chosen.set('mall', { opt:null, pace:1 });
+order.push('mall');
+
+/* ── розрахунок і рендер ── */
+const startEl = document.getElementById('start');
+startEl.onchange = render;
+
+const pad = n => String(n).padStart(2,'0');
+const fmt = m => `${pad(Math.floor(m/60) % 24)}:${pad(m % 60)}`;
+const human = m => m < 60 ? `${m} хв`
+  : (m % 60 === 0 ? `${m/60} год` : `${Math.floor(m/60)} год ${m%60} хв`);
+
+function startMin(){
+  const [h,m] = (startEl.value || '12:40').split(':').map(Number);
+  return h*60 + m;
+}
+
+function schedule(){
+  let t = startMin();
+  return order.map((id,i)=>{
+    const it = BY_ID[id], st = chosen.get(id);
+    if (i > 0) t += TRANSIT;
+    const dur = Math.round(it.dur * PACE[st.pace].k / 5) * 5;
+    const row = { id, it, st, from:t, dur };
+    t += dur;
+    return row;
+  });
+}
+
+function render(){
+  // нумерація в списку
+  Object.entries(nodes).forEach(([id,n])=>{
+    const i = order.indexOf(id);
+    n.btn.classList.toggle('on', i >= 0);
+    n.btn.setAttribute('aria-pressed', i >= 0);
+    n.btn.dataset.n = i >= 0 ? (i+1) : '';
+    n.optRow.classList.toggle('show', i >= 0 && n.optRow.children.length > 0);
+  });
+
+  const rows = schedule();
+  const legs = document.getElementById('legs');
+  legs.innerHTML = '';
+  document.getElementById('empty').style.display = rows.length ? 'none' : 'block';
+
+  rows.forEach((r,i)=>{
+    if (i > 0){
+      const w = document.createElement('p');
+      w.className = 'walk'; w.textContent = `↓ ${TRANSIT} хв дороги`;
+      legs.appendChild(w);
+    }
+    const el = document.createElement('div');
+    el.className = 'leg';
+    el.innerHTML =
+      `<div class="tm">${fmt(r.from)}</div>
+       <div class="bd">
+         <div class="t">${r.it.t}${r.st.opt ? ` <span class="o">· ${r.st.opt}</span>` : ''}</div>
+         <button class="dur">${human(r.dur)} · ${PACE[r.st.pace].nm}</button>
+       </div>
+       <div class="ctl">
+         <button class="up"   ${i === 0 ? 'disabled' : ''} aria-label="вище">↑</button>
+         <button class="down" ${i === rows.length-1 ? 'disabled' : ''} aria-label="нижче">↓</button>
+         <button class="rm" aria-label="прибрати">✕</button>
+       </div>`;
+
+    el.querySelector('.dur').onclick = ()=>{
+      buzz('light'); r.st.pace = (r.st.pace + 1) % PACE.length; render();
+    };
+    el.querySelector('.up').onclick = ()=>{
+      buzz('light'); [order[i-1],order[i]] = [order[i],order[i-1]]; render();
+    };
+    el.querySelector('.down').onclick = ()=>{
+      buzz('light'); [order[i+1],order[i]] = [order[i],order[i+1]]; render();
+    };
+    el.querySelector('.rm').onclick = ()=>{
+      if (r.it.fixed){ buzz('rigid'); toast('Victoria Gardens лишається.'); return; }
+      buzz('light'); chosen.delete(r.id); order = order.filter(x=>x !== r.id); render();
+    };
+    legs.appendChild(el);
+  });
+
+  const end = rows.length ? rows[rows.length-1].from + rows[rows.length-1].dur : null;
+  document.getElementById('endline').textContent =
+    end === null ? '' : `Закінчимо близько ${fmt(end)}.`;
+
+  const total = end === null ? 0 : end - startMin();
+  document.getElementById('tally').textContent =
+    rows.length ? `${rows.length} · ${human(total)}` : 'поки нічого';
+  document.getElementById('send').disabled = rows.length === 0;
+}
+render();
+
+function buildText(){
+  const rows = schedule();
+  let out = `🌸 План від Ангеліни\n\n${fmt(startMin())}  Львів-Головний, поїзд\n`;
+  rows.forEach(r=>{
+    out += `${fmt(r.from)}  ${r.it.t}${r.st.opt ? ' — ' + r.st.opt : ''}  (${human(r.dur)})\n`;
+  });
+  const end = rows.length ? rows[rows.length-1].from + rows[rows.length-1].dur : startMin();
+  out += `\nКінець близько ${fmt(end)}`;
+  const note = document.getElementById('note-in').value.trim();
+  if (note) out += `\n\n💬 ${note}`;
+  return out;
+}
+
+async function sendPlan(){
+  const btn = document.getElementById('send');
+  btn.disabled = true; btn.textContent = 'Надсилаю…';
+  const text = buildText();
+  let ok = false;
+
+  if (CONFIG.endpoint){
+    try {
+      const r = await fetch(CONFIG.endpoint, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ text, initData: tg?.initData || '' })
+      });
+      ok = r.ok;
+    } catch(e){ ok = false; }
+  }
+
+  if (ok){
+    buzz('medium'); btn.textContent = 'Надіслано';
+    setTimeout(()=>go('game'), 900);
+  } else {
+    btn.disabled = false; btn.textContent = 'Надіслати';
+    try { await navigator.clipboard.writeText(text);
+      toast('Не долетіло. План скопійовано — просто встав у чат.', 4200);
+    } catch(e){ toast('Не долетіло. Перевір інтернет і спробуй ще раз.', 4200); }
+    setTimeout(()=>go('game'), 2600);
+  }
+}
+
+/* ═══════ 5. ГРА: BLOCK BLAST З ФОТО ═══════ */
+const N = 8;
+const board = document.getElementById('board');
+const trayEl = document.getElementById('tray');
+const ghost  = document.getElementById('ghost');
+
+/* фігури: [x,y]; обертати не можна — як в оригіналі */
+const SHAPES = [
+  [[0,0]],
+  [[0,0],[1,0]], [[0,0],[0,1]],
+  [[0,0],[1,0],[2,0]], [[0,0],[0,1],[0,2]],
+  [[0,0],[1,0],[0,1]], [[1,0],[0,1],[1,1]],
+  [[0,0],[1,0],[1,1]], [[0,0],[0,1],[1,1]],
+  [[0,0],[1,0],[0,1],[1,1]],
+  [[0,0],[1,0],[2,0],[3,0]], [[0,0],[0,1],[0,2],[0,3]],
+  [[0,0],[1,0],[2,0],[2,1]], [[0,0],[1,0],[2,0],[0,1]],
+  [[0,0],[0,1],[1,1],[1,2]], [[1,0],[0,1],[1,1],[0,2]]
+];
+const wOf = s => Math.max(...s.map(p=>p[0])) + 1;
+const hOf = s => Math.max(...s.map(p=>p[1])) + 1;
+
+let filled = [], tray = [], started = false, won = false;
+
+function startGame(){
+  if (started) return; started = true;
+  board.style.setProperty('--pic', `url("${CONFIG.photo}")`);
+  filled = Array(N*N).fill(false);
+  board.innerHTML = '';
+  for (let y=0;y<N;y++) for (let x=0;x<N;x++){
+    const d = document.createElement('div');
+    d.className = 'cell';
+    d.style.backgroundPosition = `${x/(N-1)*100}% ${y/(N-1)*100}%`;
+    board.appendChild(d);
+  }
+  newTray();
+  progress();
+}
+
+const fits = (sh,ox,oy) => sh.every(([x,y])=>{
+  const gx = ox+x, gy = oy+y;
+  return gx>=0 && gy>=0 && gx<N && gy<N && !filled[gy*N+gx];
+});
+const anywhere = sh =>{
+  for (let y=0;y<N;y++) for (let x=0;x<N;x++) if (fits(sh,x,y)) return true;
+  return false;
+};
+
+function newTray(){
+  const left = filled.filter(v=>!v).length;
+  const pool = SHAPES.filter(s => anywhere(s) && (left > 14 || s.length <= 3));
+  tray = [];
+  for (let i=0;i<3;i++){
+    const ok = pool.filter(anywhere);
+    tray.push(ok.length ? ok[(Math.random()*ok.length)|0] : null);
+  }
+  if (!tray.some(Boolean)) tray = [SHAPES[0], SHAPES[0], SHAPES[0]];
+  drawTray();
+}
+
+function drawTray(){
+  trayEl.innerHTML = '';
+  tray.forEach((sh,i)=>{
+    const el = document.createElement('div');
+    el.className = 'piece' + (sh ? '' : ' used');
+    if (sh){
+      el.style.gridTemplateColumns = `repeat(${wOf(sh)}, var(--pb,17px))`;
+      for (let y=0;y<hOf(sh);y++) for (let x=0;x<wOf(sh);x++){
+        const b = document.createElement('div');
+        if (sh.some(p=>p[0]===x && p[1]===y)) b.className = 'blk';
+        else b.style.width = b.style.height = 'var(--pb,17px)';
+        el.appendChild(b);
+      }
+      el.addEventListener('pointerdown', e=>grab(e, i, el));
+    }
+    trayEl.appendChild(el);
+  });
+}
+
+/* ── перетягування ── */
+let drag = null;
+
+function metrics(){
+  const r = board.getBoundingClientRect();
+  const pad = 5, gap = 2;
+  const cell = (r.width - pad*2 - gap*(N-1)) / N;
+  return { r, pad, gap, cell, step: cell + gap };
+}
+
+function grab(e, idx, el){
+  if (won || !tray[idx]) return;
+  const m = metrics();
+  drag = { idx, sh: tray[idx], el };
+  ghost.innerHTML = '';
+  ghost.style.gridTemplateColumns = `repeat(${wOf(drag.sh)}, ${m.cell}px)`;
+  for (let y=0;y<hOf(drag.sh);y++) for (let x=0;x<wOf(drag.sh);x++){
+    const b = document.createElement('div');
+    b.style.width = b.style.height = m.cell + 'px';
+    if (drag.sh.some(p=>p[0]===x && p[1]===y)) b.className = 'blk';
+    ghost.appendChild(b);
+  }
+  ghost.style.display = 'grid';
+  el.setPointerCapture(e.pointerId);
+  el.addEventListener('pointermove', moveDrag);
+  el.addEventListener('pointerup', dropDrag);
+  el.addEventListener('pointercancel', dropDrag);
+  moveDrag(e);
+  e.preventDefault();
+}
+
+function target(e){
+  const m = metrics();
+  const w = wOf(drag.sh), h = hOf(drag.sh);
+  const pw = w*m.cell + (w-1)*m.gap, ph = h*m.cell + (h-1)*m.gap;
+  const lift = m.cell * 1.7;
+  const left = e.clientX - pw/2, top = e.clientY - lift - ph/2;
+  return {
+    m, left, top,
+    ox: Math.round((left - m.r.left - m.pad) / m.step),
+    oy: Math.round((top  - m.r.top  - m.pad) / m.step)
+  };
+}
+
+function moveDrag(e){
+  if (!drag) return;
+  const t = target(e);
+  ghost.style.left = t.left + 'px';
+  ghost.style.top  = t.top + 'px';
+  [...board.children].forEach(c=>c.classList.remove('hint','bad'));
+  const ok = fits(drag.sh, t.ox, t.oy);
+  drag.sh.forEach(([x,y])=>{
+    const gx = t.ox+x, gy = t.oy+y;
+    if (gx>=0 && gy>=0 && gx<N && gy<N && !filled[gy*N+gx])
+      board.children[gy*N+gx].classList.add(ok ? 'hint' : 'bad');
+  });
+}
+
+function dropDrag(e){
+  if (!drag) return;
+  const { sh, idx, el } = drag;
+  const t = target(e);
+  el.removeEventListener('pointermove', moveDrag);
+  el.removeEventListener('pointerup', dropDrag);
+  el.removeEventListener('pointercancel', dropDrag);
+  ghost.style.display = 'none';
+  [...board.children].forEach(c=>c.classList.remove('hint','bad'));
+  drag = null;
+
+  if (!fits(sh, t.ox, t.oy)) return;
+  buzz('medium');
+  sh.forEach(([x,y],k)=>{
+    const i = (t.oy+y)*N + (t.ox+x);
+    filled[i] = true;
+    const c = board.children[i];
+    setTimeout(()=>c.classList.add('on'), k*40);
+  });
+  tray[idx] = null;
+  drawTray();
+  progress();
+
+  if (filled.every(Boolean)) return victory();
+  if (!tray.some(s=>s && anywhere(s))) setTimeout(newTray, 260);
+}
+
+function progress(){
+  const n = filled.filter(Boolean).length;
+  document.getElementById('progress').textContent = `${n} з ${N*N}`;
+}
+
+function victory(){
+  won = true;
+  buzz('heavy');
+  setTimeout(()=>{
+    board.classList.add('won');
+    trayEl.style.display = 'none';
+    document.getElementById('progress').style.display = 'none';
+    document.getElementById('won-line').classList.add('show');
+  }, 420);
+}
+</script>
+</body>
+</html>
